@@ -1,0 +1,3 @@
+"""
+SmartCity InsightHub Backend Application
+"""
