@@ -1,5 +1,5 @@
-# SmartCity InsightHub Backend - Python 3.11 Requirements
-# Compatible with Python 3.11.x
+# SmartCity InsightHub Backend - Python 3.10 Requirements
+# Compatible with Python 3.10.x
 
 # ============================================================
 # FastAPI Framework & ASGI Server
@@ -26,15 +26,13 @@ bcrypt==4.1.1
 # ============================================================
 pydantic==2.5.0
 pydantic-settings==2.1.0
-pydantic[email]==2.5.0
-email-validator==2.1.0
 python-dotenv==1.0.0
 
 # ============================================================
 # AI/ML - Sentence Transformers for Embeddings (384D vectors)
 # ============================================================
 sentence-transformers==2.2.2
-torch==2.1.0
+torch==2.0.1
 transformers==4.35.0
 numpy==1.26.2
 

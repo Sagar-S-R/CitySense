@@ -902,6 +902,7 @@ For setup instructions, see [README.md](../README.md)
 
 ---
 
-**Project by:** Sagar S R, Samrudh P
+**Project by:** Sagar S R(1MS23CS158), Samrudh P(1MS23CS162)
+
 **Course:** DBMS, Semester 5, MSRIT  
 **Date:** December 2025
