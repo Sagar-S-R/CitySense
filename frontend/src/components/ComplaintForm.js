@@ -117,7 +117,7 @@ function ComplaintForm({ userWard, onSuccess }) {
             rows="5"
           />
           <p className="text-sm text-gray mt-1">
-            💡 Our AI will analyze your complaint and find similar issues automatically
+            Our AI will analyze your complaint and find similar issues automatically
           </p>
         </div>
 
@@ -134,7 +134,7 @@ function ComplaintForm({ userWard, onSuccess }) {
       {similarComplaints.length > 0 && (
         <div className="mt-4">
           <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>
-            🤖 AI Found Similar Complaints:
+            AI Found Similar Complaints:
           </h3>
           <p className="text-sm text-gray mb-2">
             These complaints have similar meaning to yours (found using semantic search)

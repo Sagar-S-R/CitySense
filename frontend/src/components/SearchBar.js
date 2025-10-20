@@ -36,7 +36,7 @@ function SearchBar({ onSearch }) {
         className="btn btn-primary search-button"
         disabled={loading || !query.trim()}
       >
-        {loading ? '⏳' : '🔍'} Search
+        {loading ? 'Searching...' : 'Search'}
       </button>
     </form>
   );

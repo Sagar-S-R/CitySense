@@ -44,15 +44,15 @@ async def get_dashboard_data(
             params = []
             
             if user_role == 'officer':
-                ward_filter = "WHERE ward = %s"
+                ward_filter = "WHERE ward_number = %s"
                 params.append(user_ward)
             
             # 1. Ward-wise complaint counts
             cursor.execute(f"""
-                SELECT ward, COUNT(*) as complaint_count
-                FROM Complaints
+                SELECT ward_number, COUNT(*) as complaint_count
+                FROM complaints
                 {ward_filter}
-                GROUP BY ward
+                GROUP BY ward_number
                 ORDER BY complaint_count DESC
             """, params)
             ward_data = cursor.fetchall()
@@ -60,7 +60,7 @@ async def get_dashboard_data(
             # 2. Status breakdown
             cursor.execute(f"""
                 SELECT status, COUNT(*) as count
-                FROM Complaints
+                FROM complaints
                 {ward_filter}
                 GROUP BY status
             """, params)
@@ -69,7 +69,7 @@ async def get_dashboard_data(
             # 3. Category distribution
             cursor.execute(f"""
                 SELECT category, COUNT(*) as count
-                FROM Complaints
+                FROM complaints
                 {ward_filter}
                 GROUP BY category
                 ORDER BY count DESC
@@ -79,7 +79,7 @@ async def get_dashboard_data(
             # 4. Recent trends (last 7 days)
             cursor.execute(f"""
                 SELECT DATE(date) as day, COUNT(*) as count
-                FROM Complaints
+                FROM complaints
                 {ward_filter}
                 WHERE date >= CURRENT_DATE - INTERVAL '7 days'
                 GROUP BY DATE(date)
@@ -89,7 +89,7 @@ async def get_dashboard_data(
             
             return {
                 "ward_wise": [
-                    {"ward": row['ward'], "count": row['complaint_count']}
+                    {"ward": row['ward_number'], "count": row['complaint_count']}
                     for row in ward_data
                 ],
                 "status_breakdown": [
@@ -138,7 +138,7 @@ async def get_summary_stats(
             params = []
             
             if user_role == 'officer':
-                ward_filter = "WHERE ward = %s"
+                ward_filter = "WHERE ward_number = %s"
                 params.append(user_ward)
             
             # Get summary counts
@@ -148,7 +148,7 @@ async def get_summary_stats(
                     COUNT(*) FILTER (WHERE status = 'pending') as pending,
                     COUNT(*) FILTER (WHERE status = 'resolved') as resolved,
                     COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress
-                FROM Complaints
+                FROM complaints
                 {ward_filter}
             """, params)
             summary = cursor.fetchone()

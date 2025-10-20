@@ -13,20 +13,21 @@ function Register() {
     name: '',
     email: '',
     password: '',
-    ward: 'Ward 1',
+    ward: 1,
     role: 'citizen',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Ward options
-  const wards = ['Ward 1', 'Ward 2', 'Ward 3', 'Ward 4', 'Ward 5'];
+  // Ward options (1-198 for Bangalore)
+  const wards = Array.from({ length: 198 }, (_, i) => i + 1);
 
   // Handle form input changes
   const handleChange = (e) => {
+    const value = e.target.name === 'ward' ? parseInt(e.target.value) : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
   };
 
@@ -41,7 +42,23 @@ function Register() {
       // Redirect to login after successful registration
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      // Handle different error formats
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (err.response?.data?.detail) {
+        // FastAPI validation errors can be an array of objects
+        if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail
+            .map(e => e.msg || JSON.stringify(e))
+            .join(', ');
+        } else if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        } else {
+          errorMessage = JSON.stringify(err.response.data.detail);
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -50,7 +67,7 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">🏙️ Create Account</h1>
+        <h1 className="auth-title">Create Account</h1>
 
         {error && (
           <div className="alert alert-error">
@@ -100,7 +117,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Ward</label>
+            <label className="form-label">Ward Number</label>
             <select
               name="ward"
               className="form-select"
@@ -108,9 +125,9 @@ function Register() {
               onChange={handleChange}
               required
             >
-              {wards.map((ward) => (
-                <option key={ward} value={ward}>
-                  {ward}
+              {wards.map((wardNum) => (
+                <option key={wardNum} value={wardNum}>
+                  Ward {wardNum}
                 </option>
               ))}
             </select>

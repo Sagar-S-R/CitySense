@@ -26,7 +26,7 @@ class UserService:
         with Database.get_cursor() as cursor:
             # Check if email already exists
             cursor.execute(
-                "SELECT id FROM Citizens WHERE email = %s",
+                "SELECT id FROM citizens WHERE email = %s",
                 (user_data.email,)
             )
             if cursor.fetchone():
@@ -39,11 +39,12 @@ class UserService:
             hashed_pwd = security_service.hash_password(user_data.password)
             cursor.execute(
                 """
-                INSERT INTO Citizens (name, ward, email, role, password_hash)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO citizens (name, ward_number, email, role, password_hash, phone, zone, address)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
-                (user_data.name, user_data.ward, user_data.email, user_data.role, hashed_pwd)
+                (user_data.name, user_data.ward, user_data.email, user_data.role, hashed_pwd, 
+                 getattr(user_data, 'phone', None), getattr(user_data, 'zone', None), getattr(user_data, 'address', None))
             )
             user_id = cursor.fetchone()['id']
             
@@ -66,7 +67,7 @@ class UserService:
         with Database.get_cursor() as cursor:
             # Fetch user by email
             cursor.execute(
-                "SELECT id, name, email, role, ward, password_hash FROM Citizens WHERE email = %s",
+                "SELECT id, name, email, role, ward_number, password_hash FROM citizens WHERE email = %s",
                 (credentials.email,)
             )
             db_user = cursor.fetchone()
@@ -86,7 +87,7 @@ class UserService:
                 "user_id": db_user['id'],
                 "email": db_user['email'],
                 "role": db_user['role'],
-                "ward": db_user['ward']
+                "ward": db_user['ward_number']
             })
             
             return LoginResponse(
@@ -97,7 +98,7 @@ class UserService:
                     name=db_user['name'],
                     email=db_user['email'],
                     role=db_user['role'],
-                    ward=db_user['ward']
+                    ward=db_user['ward_number']
                 )
             )
     
@@ -114,7 +115,7 @@ class UserService:
         """
         with Database.get_cursor() as cursor:
             cursor.execute(
-                "SELECT id, name, email, role, ward FROM Citizens WHERE id = %s",
+                "SELECT id, name, email, role, ward_number FROM citizens WHERE id = %s",
                 (user_id,)
             )
             return cursor.fetchone()

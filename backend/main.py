@@ -36,7 +36,9 @@ async def lifespan(app: FastAPI):
             with conn.cursor() as cursor:
                 cursor.execute("SELECT version()")
                 db_version = cursor.fetchone()
-                print(f"📊 PostgreSQL: {db_version[0][:50]}...")
+                # Handle dict result from RealDictCursor
+                version_str = db_version['version'] if isinstance(db_version, dict) else db_version[0]
+                print(f"📊 PostgreSQL: {version_str[:50]}...")
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         raise

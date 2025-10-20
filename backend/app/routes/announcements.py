@@ -5,6 +5,7 @@ Handles official announcements from government
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from ..core.database import Database
 from ..core.security import security_service
 
@@ -16,28 +17,30 @@ router = APIRouter(
 
 class AnnouncementCreate(BaseModel):
     """Schema for creating announcements"""
-    ward: str
+    ward: Optional[int] = None  # ward_number (None for city-wide)
     title: str
-    message: str
+    body: str
 
 class AnnouncementResponse(BaseModel):
     """Schema for announcement response"""
     id: int
-    ward: str
+    ward: Optional[int] = None  # ward_number from database (None for city-wide)
     title: str
-    message: str
+    body: str
     date: str
 
 @router.get("/")
 async def get_announcements(
-    ward: str = None,
+    ward: int = None,
+    limit: int = 20,
     current_user: dict = Depends(security_service.get_current_user)
 ):
     """
     Get announcements (optionally filtered by ward)
     
     Query Parameters:
-        - ward: Optional ward filter
+        - ward: Optional ward filter (ward number)
+        - limit: Maximum number of announcements (default: 20)
     
     Returns:
         List of announcements
@@ -50,28 +53,28 @@ async def get_announcements(
             # Build query with optional ward filter
             if ward:
                 cursor.execute("""
-                    SELECT id, ward, title, message, date
-                    FROM Announcements
-                    WHERE ward = %s OR ward = 'all'
+                    SELECT id, ward_number, title, body, date
+                    FROM announcements
+                    WHERE ward_number = %s OR ward_number IS NULL
                     ORDER BY date DESC
-                    LIMIT 20
-                """, (ward,))
+                    LIMIT %s
+                """, (ward, limit))
             else:
                 cursor.execute("""
-                    SELECT id, ward, title, message, date
-                    FROM Announcements
+                    SELECT id, ward_number, title, body, date
+                    FROM announcements
                     ORDER BY date DESC
-                    LIMIT 20
-                """)
+                    LIMIT %s
+                """, (limit,))
             
             announcements = cursor.fetchall()
             
             return [
                 AnnouncementResponse(
                     id=a['id'],
-                    ward=a['ward'],
+                    ward=a['ward_number'],
                     title=a['title'],
-                    message=a['message'],
+                    body=a['body'],
                     date=a['date'].isoformat()
                 )
                 for a in announcements
@@ -109,13 +112,13 @@ async def create_announcement(
     try:
         with Database.get_cursor() as cursor:
             cursor.execute("""
-                INSERT INTO Announcements (ward, title, message, date)
+                INSERT INTO announcements (ward_number, title, body, date)
                 VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
                 RETURNING id
             """, (
                 announcement_data.ward,
                 announcement_data.title,
-                announcement_data.message
+                announcement_data.body
             ))
             announcement_id = cursor.fetchone()['id']
             

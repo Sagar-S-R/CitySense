@@ -104,7 +104,7 @@ function OfficerDashboard({ user, setUser }) {
                 color: activeTab === 'overview' ? '#3b82f6' : '#6b7280',
               }}
             >
-              📊 Overview
+              Overview
             </button>
             <button
               onClick={() => setActiveTab('search')}
@@ -118,7 +118,7 @@ function OfficerDashboard({ user, setUser }) {
                 color: activeTab === 'search' ? '#3b82f6' : '#6b7280',
               }}
             >
-              🔍 AI Search
+              AI Search
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
@@ -132,7 +132,7 @@ function OfficerDashboard({ user, setUser }) {
                 color: activeTab === 'analytics' ? '#3b82f6' : '#6b7280',
               }}
             >
-              📈 Analytics
+              Analytics
             </button>
           </div>
         </div>
@@ -153,7 +153,7 @@ function OfficerDashboard({ user, setUser }) {
             {/* AI Summary */}
             {summary && (
               <div className="card">
-                <h2 className="card-title">🤖 AI-Generated Summary</h2>
+                <h2 className="card-title">AI-Generated Summary</h2>
                 <div className="grid grid-2">
                   <div>
                     <p className="text-sm text-gray">Total Complaints This Month</p>
@@ -209,7 +209,7 @@ function OfficerDashboard({ user, setUser }) {
         {activeTab === 'search' && (
           <>
             <div className="card">
-              <h2 className="card-title">🤖 AI-Powered Semantic Search</h2>
+              <h2 className="card-title">AI-Powered Semantic Search</h2>
               <p className="text-sm text-gray mb-3">
                 Search using natural language to find similar complaints across your ward.
                 Our AI uses embeddings to understand semantic meaning.

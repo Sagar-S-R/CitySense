@@ -41,7 +41,23 @@ function Login({ setUser }) {
         navigate('/officer/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.');
+      // Handle different error formats
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (err.response?.data?.detail) {
+        // FastAPI validation errors can be an array of objects
+        if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail
+            .map(e => e.msg || JSON.stringify(e))
+            .join(', ');
+        } else if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        } else {
+          errorMessage = JSON.stringify(err.response.data.detail);
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -50,7 +66,7 @@ function Login({ setUser }) {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">🏙️ SmartCity Login</h1>
+        <h1 className="auth-title">CitySense Login</h1>
 
         {error && (
           <div className="alert alert-error">

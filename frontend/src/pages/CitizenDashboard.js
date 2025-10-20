@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { authService, complaintService, dashboardService, announcementService } from '../services/api';
+import { complaintService, dashboardService, announcementService } from '../services/api';
 import Navbar from '../components/Navbar';
 import ComplaintForm from '../components/ComplaintForm';
 import SearchBar from '../components/SearchBar';
@@ -23,6 +23,7 @@ function CitizenDashboard({ user, setUser }) {
   useEffect(() => {
     fetchDashboardData();
     fetchAnnouncements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {
@@ -39,7 +40,7 @@ function CitizenDashboard({ user, setUser }) {
   const fetchAnnouncements = async () => {
     try {
       const data = await announcementService.getAnnouncements(user.ward, 5);
-      setAnnouncements(data.announcements);
+      setAnnouncements(data); // data is already the array
     } catch (error) {
       console.error('Error fetching announcements:', error);
     }
@@ -94,7 +95,7 @@ function CitizenDashboard({ user, setUser }) {
                 color: activeTab === 'overview' ? '#3b82f6' : '#6b7280',
               }}
             >
-              📊 Overview
+              Overview
             </button>
             <button
               onClick={() => setActiveTab('submit')}
@@ -108,7 +109,7 @@ function CitizenDashboard({ user, setUser }) {
                 color: activeTab === 'submit' ? '#3b82f6' : '#6b7280',
               }}
             >
-              ✍️ Submit Complaint
+              Submit Complaint
             </button>
             <button
               onClick={() => setActiveTab('search')}
@@ -122,7 +123,7 @@ function CitizenDashboard({ user, setUser }) {
                 color: activeTab === 'search' ? '#3b82f6' : '#6b7280',
               }}
             >
-              🔍 AI Search
+              AI Search
             </button>
           </div>
         </div>
@@ -148,7 +149,7 @@ function CitizenDashboard({ user, setUser }) {
 
             {/* Announcements */}
             <div className="card">
-              <h2 className="card-title">📢 Latest Announcements</h2>
+              <h2 className="card-title">Latest Announcements</h2>
               <AnnouncementList announcements={announcements} />
             </div>
           </>
@@ -169,7 +170,7 @@ function CitizenDashboard({ user, setUser }) {
         {activeTab === 'search' && (
           <>
             <div className="card">
-              <h2 className="card-title">🤖 AI-Powered Semantic Search</h2>
+              <h2 className="card-title">AI-Powered Semantic Search</h2>
               <p className="text-sm text-gray mb-3">
                 Search using natural language. Our AI understands meaning, not just keywords.
                 Try: "water problem in my area" or "broken street lights"

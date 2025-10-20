@@ -36,7 +36,7 @@ class ComplaintService:
             # Insert complaint
             cursor.execute(
                 """
-                INSERT INTO Complaints (user_id, ward, category, description, status, date, embedding)
+                INSERT INTO complaints (user_id, ward_number, category, description, status, date, embedding)
                 VALUES (%s, %s, %s, %s, %s, %s, %s::vector)
                 RETURNING id
                 """,
@@ -92,18 +92,18 @@ class ComplaintService:
             
             # Build search query
             sql = """
-                SELECT c.id, c.ward, c.category, c.description, c.status, c.date,
+                SELECT c.id, c.ward_number, c.category, c.description, c.status, c.date,
                        u.name as citizen_name,
                        1 - (c.embedding <=> %s::vector) AS relevance_score
-                FROM Complaints c
-                JOIN Citizens u ON c.user_id = u.id
+                FROM complaints c
+                JOIN citizens u ON c.user_id = u.id
                 WHERE 1=1
             """
             params = [embedding_str]
             
             # Apply ward filter if specified
             if search_query.ward:
-                sql += " AND c.ward = %s"
+                sql += " AND c.ward_number = %s"
                 params.append(search_query.ward)
             
             # Apply role-based filtering
@@ -111,7 +111,7 @@ class ComplaintService:
                 sql += " AND (c.user_id = %s OR c.status IN ('resolved', 'in_progress'))"
                 params.append(user_id)
             elif user_role == 'officer':
-                sql += " AND c.ward = %s"
+                sql += " AND c.ward_number = %s"
                 params.append(user_ward)
             
             sql += " ORDER BY relevance_score DESC LIMIT %s"
@@ -124,7 +124,7 @@ class ComplaintService:
                 "results": [
                     ComplaintResponse(
                         id=r['id'],
-                        ward=r['ward'],
+                        ward=r['ward_number'],
                         category=r['category'],
                         description=r['description'],
                         status=r['status'],
@@ -152,7 +152,7 @@ class ComplaintService:
         with Database.get_cursor() as cursor:
             # Fetch the original complaint
             cursor.execute(
-                "SELECT description, ward FROM Complaints WHERE id = %s",
+                "SELECT description, ward_number FROM complaints WHERE id = %s",
                 (complaint_id,)
             )
             complaint = cursor.fetchone()
@@ -167,7 +167,7 @@ class ComplaintService:
             similar = ComplaintService._find_similar_internal(
                 cursor,
                 complaint['description'],
-                complaint['ward'],
+                complaint['ward_number'],
                 exclude_id=complaint_id
             )
             
@@ -205,11 +205,11 @@ class ComplaintService:
             # Verify ward access for officers
             if user_role == 'officer':
                 cursor.execute(
-                    "SELECT ward FROM Complaints WHERE id = %s",
+                    "SELECT ward_number FROM complaints WHERE id = %s",
                     (complaint_id,)
                 )
                 complaint = cursor.fetchone()
-                if not complaint or complaint['ward'] != user_ward:
+                if not complaint or complaint['ward_number'] != user_ward:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="Access denied to this ward"
@@ -217,7 +217,7 @@ class ComplaintService:
             
             # Update status
             cursor.execute(
-                "UPDATE Complaints SET status = %s WHERE id = %s",
+                "UPDATE complaints SET status = %s WHERE id = %s",
                 (new_status, complaint_id)
             )
             
@@ -252,8 +252,8 @@ class ComplaintService:
         sql = """
             SELECT id, description, category, status, date,
                    1 - (embedding <=> %s::vector) AS similarity_score
-            FROM Complaints
-            WHERE ward = %s
+            FROM complaints
+            WHERE ward_number = %s
         """
         params = [embedding_str, ward]
         

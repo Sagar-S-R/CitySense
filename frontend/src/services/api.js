@@ -52,7 +52,7 @@ export const authService = {
    * Register a new user
    */
   register: async (userData) => {
-    const response = await api.post('/registerUser', userData);
+    const response = await api.post('/auth/register', userData);
     return response.data;
   },
 
@@ -60,7 +60,7 @@ export const authService = {
    * Login user and store token
    */
   login: async (credentials) => {
-    const response = await api.post('/login', credentials);
+    const response = await api.post('/auth/login', credentials);
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -100,7 +100,7 @@ export const complaintService = {
    * Submit a new complaint
    */
   submitComplaint: async (complaintData) => {
-    const response = await api.post('/submitComplaint', complaintData);
+    const response = await api.post('/complaints/submit', complaintData);
     return response.data;
   },
 
@@ -109,7 +109,7 @@ export const complaintService = {
    * This uses AI embeddings for semantic search
    */
   searchComplaints: async (query, ward = null, limit = 5) => {
-    const response = await api.post('/searchComplaints', {
+    const response = await api.post('/complaints/search', {
       query,
       ward,
       limit,
@@ -122,7 +122,7 @@ export const complaintService = {
    * Uses vector similarity search
    */
   getSimilarIssues: async (complaintId) => {
-    const response = await api.get(`/getSimilarIssues/${complaintId}`);
+    const response = await api.get(`/complaints/similar/${complaintId}`);
     return response.data;
   },
 
@@ -130,8 +130,7 @@ export const complaintService = {
    * Update complaint status (officer/admin only)
    */
   updateStatus: async (complaintId, status) => {
-    const response = await api.post('/updateComplaintStatus', {
-      complaint_id: complaintId,
+    const response = await api.put(`/complaints/update/${complaintId}`, {
       status,
     });
     return response.data;
@@ -149,7 +148,7 @@ export const dashboardService = {
    * Admins see city-wide data
    */
   getDashboardData: async () => {
-    const response = await api.get('/getDashboardData');
+    const response = await api.get('/dashboard/data');
     return response.data;
   },
 
@@ -158,7 +157,7 @@ export const dashboardService = {
    * Uses SQL aggregations for insights
    */
   getSummary: async () => {
-    const response = await api.get('/getSummary');
+    const response = await api.get('/dashboard/summary');
     return response.data;
   },
 };
@@ -175,7 +174,7 @@ export const announcementService = {
     if (ward) params.append('ward', ward);
     params.append('limit', limit);
     
-    const response = await api.get(`/announcements?${params.toString()}`);
+    const response = await api.get(`/announcements/?${params.toString()}`);
     return response.data;
   },
 
@@ -183,7 +182,7 @@ export const announcementService = {
    * Search announcements using semantic search
    */
   searchAnnouncements: async (query, ward = null, limit = 5) => {
-    const response = await api.post('/searchAnnouncements', {
+    const response = await api.post('/announcements/search', {
       query,
       ward,
       limit,
@@ -200,7 +199,7 @@ export const reportService = {
    * Submit a new report
    */
   submitReport: async (reportData) => {
-    const response = await api.post('/submitReport', reportData);
+    const response = await api.post('/reports/submit', reportData);
     return response.data;
   },
 };

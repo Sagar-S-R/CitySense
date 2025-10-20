@@ -16,7 +16,7 @@ function Navbar({ user, setUser }) {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        <h1 className="navbar-title">🏙️ SmartCity InsightHub</h1>
+        <h1 className="navbar-title">CitySense</h1>
         <div className="navbar-user">
           <span style={{ marginRight: '1rem' }}>
             <strong>{user.name}</strong> ({user.role})
