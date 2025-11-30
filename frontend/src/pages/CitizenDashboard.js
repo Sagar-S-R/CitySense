@@ -55,10 +55,32 @@ function CitizenDashboard({ user, setUser }) {
   // Handle search
   const handleSearch = async (query) => {
     try {
-      const results = await complaintService.searchComplaints(query, null); // Search all wards
-      setSearchResults(results.results || []);
+      // Search both complaints and announcements
+      const [complaintResults, announcementResults] = await Promise.all([
+        complaintService.searchComplaints(query, null), // Search all wards
+        announcementService.searchAnnouncements(query, null).catch(() => ({ results: [] })) // Search all announcements, fallback to empty if fails
+      ]);
+      
+      // Combine results with type indicator
+      const combinedResults = [
+        ...(complaintResults.results || []).map(result => ({ ...result, type: 'complaint' })),
+        ...(announcementResults.results || []).map(result => ({ ...result, type: 'announcement' }))
+      ];
+      
+      // Sort by relevance score
+      combinedResults.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
+      
+      setSearchResults(combinedResults);
     } catch (error) {
-      console.error('Error searching complaints:', error);
+      console.error('Error searching:', error);
+      // Try to search complaints only as fallback
+      try {
+        const complaintResults = await complaintService.searchComplaints(query, null);
+        setSearchResults((complaintResults.results || []).map(result => ({ ...result, type: 'complaint' })));
+      } catch (complaintError) {
+        console.error('Error searching complaints:', complaintError);
+        setSearchResults([]);
+      }
     }
   };
 
@@ -171,9 +193,10 @@ function CitizenDashboard({ user, setUser }) {
           <>
             <div className="card">
               <h2 className="card-title">AI-Powered Semantic Search</h2>
-              <p className="text-sm text-gray mb-3">
+              <p className="text-gray mb-3">
                 Search using natural language. Our AI understands meaning, not just keywords.
-                Try: "water problem in my area" or "broken street lights"
+                Searches both complaints and official announcements.
+                Try: "water problem in my area" or "road maintenance schedule"
               </p>
               <SearchBar onSearch={handleSearch} />
             </div>
@@ -183,21 +206,34 @@ function CitizenDashboard({ user, setUser }) {
                 <h2 className="card-title">Search Results</h2>
                 <div>
                   {searchResults.map((result) => (
-                    <div key={result.id} className="similar-item">
+                    <div key={`${result.type}-${result.id}`} className="similar-item">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <span className={`badge badge-${result.status.replace('_', '-')}`}>
-                              {result.status.replace('_', ' ').toUpperCase()}
-                            </span>
-                            <span className="text-sm text-gray">{result.category}</span>
+                            {result.type === 'complaint' ? (
+                              <>
+                                <span className={`badge badge-${result.status.replace('_', '-')}`}>
+                                  {result.status.replace('_', ' ').toUpperCase()}
+                                </span>
+                                <span className="text-sm text-gray">{result.category}</span>
+                              </>
+                            ) : (
+                              <span className="badge badge-info">ANNOUNCEMENT</span>
+                            )}
                             <span className="similarity-score">
                               {(result.relevance_score * 100).toFixed(0)}% match
                             </span>
                           </div>
-                          <p>{result.description}</p>
+                          {result.type === 'complaint' ? (
+                            <p>{result.description}</p>
+                          ) : (
+                            <>
+                              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>{result.title}</h4>
+                              <p>{result.body}</p>
+                            </>
+                          )}
                           <p className="text-sm text-gray mt-1">
-                            {result.ward} • {new Date(result.date).toLocaleDateString()}
+                            {result.ward ? `Ward ${result.ward}` : 'City-wide'} • {new Date(result.date).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
