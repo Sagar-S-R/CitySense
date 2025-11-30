@@ -55,7 +55,7 @@ function CitizenDashboard({ user, setUser }) {
   // Handle search
   const handleSearch = async (query) => {
     try {
-      const results = await complaintService.searchComplaints(query, user.ward);
+      const results = await complaintService.searchComplaints(query, null); // Search all wards
       setSearchResults(results.results || []);
     } catch (error) {
       console.error('Error searching complaints:', error);

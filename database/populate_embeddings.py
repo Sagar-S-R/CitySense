@@ -10,7 +10,7 @@ import os
 
 # Add parent directory to path to import embedding_service
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from backend.embedding_service import EmbeddingService
+from backend.app.services.embedding_service import EmbeddingService
 
 def populate_embeddings():
     """

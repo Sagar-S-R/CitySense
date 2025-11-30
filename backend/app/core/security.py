@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .config import settings
+from .database import Database
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -87,6 +88,18 @@ class SecurityService:
         """
         token = credentials.credentials
         payload = SecurityService.decode_token(token)
+        
+        # Verify user still exists in database
+        user_id = payload.get('user_id')
+        if user_id:
+            with Database.get_cursor() as cursor:
+                cursor.execute("SELECT id FROM citizens WHERE id = %s", (user_id,))
+                if not cursor.fetchone():
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="User not found. Please log in again."
+                    )
+        
         return payload
 
 # Create security service instance

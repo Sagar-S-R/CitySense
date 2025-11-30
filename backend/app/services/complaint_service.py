@@ -108,8 +108,11 @@ class ComplaintService:
             
             # Apply role-based filtering
             if user_role == 'citizen':
-                sql += " AND (c.user_id = %s OR c.status IN ('resolved', 'in_progress'))"
-                params.append(user_id)
+                # Citizens can search all complaints if no ward specified, otherwise their ward
+                if search_query.ward:
+                    sql += " AND c.ward_number = %s"
+                    params.append(search_query.ward)
+                # No additional filter for citizens - they can search all
             elif user_role == 'officer':
                 sql += " AND c.ward_number = %s"
                 params.append(user_ward)
@@ -250,7 +253,7 @@ class ComplaintService:
         
         # Build similarity search query
         sql = """
-            SELECT id, description, category, status, date,
+            SELECT id, ward_number, description, category, status, date,
                    1 - (embedding <=> %s::vector) AS similarity_score
             FROM complaints
             WHERE ward_number = %s
@@ -270,6 +273,7 @@ class ComplaintService:
         return [
             ComplaintResponse(
                 id=r['id'],
+                ward=r['ward_number'],
                 description=r['description'],
                 category=r['category'],
                 status=r['status'],

@@ -87,7 +87,7 @@ async def get_dashboard_data(
             """, params)
             trend_data = cursor.fetchall()
             
-            return {
+            response_data = {
                 "ward_wise": [
                     {"ward": row['ward_number'], "count": row['complaint_count']}
                     for row in ward_data
@@ -105,6 +105,49 @@ async def get_dashboard_data(
                     for row in trend_data
                 ]
             }
+            
+            # Add user-specific data for citizens
+            if user_role == 'citizen':
+                user_id = current_user['user_id']
+                
+                # User's complaint status breakdown
+                cursor.execute("""
+                    SELECT status, COUNT(*) as count
+                    FROM complaints
+                    WHERE user_id = %s
+                    GROUP BY status
+                """, (user_id,))
+                user_status_data = cursor.fetchall()
+                
+                # User's recent complaints
+                cursor.execute("""
+                    SELECT c.id, c.ward_number, c.category, c.description, c.status, c.date,
+                           u.name as citizen_name
+                    FROM complaints c
+                    JOIN citizens u ON c.user_id = u.id
+                    WHERE c.user_id = %s
+                    ORDER BY c.date DESC
+                    LIMIT 5
+                """, (user_id,))
+                user_complaints = cursor.fetchall()
+                
+                response_data["my_complaints_by_status"] = {
+                    row['status']: row['count'] for row in user_status_data
+                }
+                response_data["recent_complaints"] = [
+                    {
+                        "id": row['id'],
+                        "ward": row['ward_number'],
+                        "category": row['category'],
+                        "description": row['description'],
+                        "status": row['status'],
+                        "date": row['date'].isoformat(),
+                        "citizen_name": row['citizen_name']
+                    }
+                    for row in user_complaints
+                ]
+            
+            return response_data
     
     except HTTPException:
         raise
